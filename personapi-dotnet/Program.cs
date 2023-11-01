@@ -1,40 +1,39 @@
 using Microsoft.EntityFrameworkCore;
-using personapi_dotnet.Models.Entities;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
-
+using personapi_dotnet.Models.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddControllersWithViews();
+
 builder.Services.AddSwaggerGen(c =>
 {
-    // Add ConflictingActionsResolver
-    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "personapi-dotnet", Version = "v1" });
 });
-builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<PersonaDbContext>();
+
+builder.Services.AddDbContext<PersonaDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("PersonaDB"));
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
     app.UseExceptionHandler("/Home/Error");
+
 }
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "personapi_dotnet v1");
-    c.RoutePrefix = "swagger";
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "personapi-dotnet");
 });
 
-app.UseStaticFiles();
 
 app.UseRouting();
 
@@ -45,26 +44,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
-/*
-options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Version = "v1",
-        Title = "personaapi_dotnet",
-        Description = "Laboratorio por: Daniel Castellanos, Manuel Rios, Santiago Barbosa",
-        TermsOfService = new Uri("https://example.com/terms"),
-        Contact = new OpenApiContact
-        {
-            Name = "Example Contact",
-            Url = new Uri("https://example.com/contact")
-        },
-        License = new OpenApiLicense
-        {
-            Name = "Example License",
-            Url = new Uri("https://example.com/license")
-        }
-    });
-}
- */
